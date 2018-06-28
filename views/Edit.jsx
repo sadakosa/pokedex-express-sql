@@ -10,7 +10,7 @@ class Edit extends React.Component {
           <form
             className="pokemon-form"
             method="POST"
-            action={"/pokemons/edit/"+ this.props.pokemon.id + "?_method=PUT"}
+            action={"/pokemon/edit/"+ this.props.pokemon.id + "?_method=PUT"}
           >
             <div className="pokemon-attribute">
               id:<input name="id" type="text" defaultValue={this.props.pokemon.id} />
@@ -86,6 +86,8 @@ class Edit extends React.Component {
               />
             </div>
             <input name="submit" type="submit" />
+            <input value='delete' name='submit' type='submit' method="DELETE"
+            formAction={"/pokemon/delete/"+ this.props.pokemon.id + "?_method=DELETE"} />
           </form>
         </body>
       </html>

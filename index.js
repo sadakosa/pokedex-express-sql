@@ -4,12 +4,12 @@ const methodOverride = require('method-override');
 const pg = require('pg');
 
 // Initialise postgres client
-const client = new Client({
-  user: 'akira',
+const configs = {
+  user: 'sabrinachow',
   host: '127.0.0.1',
   database: 'pokemons',
   port: 5432,
-});
+};
 
 const pool = new pg.Pool(configs);
 
@@ -42,12 +42,12 @@ app.engine('jsx', reactEngine);
  * ===================================
  */
 
-app.get('/', (req, response) => {
+app.get('/', (req, res) => {
   // query database for all pokemon
 
   // respond with HTML page displaying all pokemon
-  //
   const queryString = 'SELECT * from pokemon'
+
 
   pool.query(queryString, (err, result) => {
     if (err) {
@@ -56,35 +56,154 @@ app.get('/', (req, response) => {
       console.log('query result:', result);
 
       // redirect to home page
-      response.send( result.rows );
+      // response.send( result.rows );
+      let pokeAll = {pokemon : result.rows}
+      res.render('Home',pokeAll);
+      // response.render('Home', {'pokemon': {'id': '20192', 'name': 'yay'}});
+      // result.rows
     }
   });
 
 });
 
-app.get('/new', (request, response) => {
+app.get('/new', (req, res) => {
   // respond with HTML page with form to create new pokemon
-  response.render('new');
+  res.render('new');
 });
 
+app.get('/pokemon/:id', (req, res) => {
+  let id = req.params.id;
 
-app.post('/pokemon', (req, response) => {
+  const queryString = 'SELECT * from pokemon WHERE id = ' + id;
+
+  pool.query(queryString, (err, result) => {
+    if (err) {
+      console.error('query error:', err.stack);
+    } else {
+      // console.log('query result:', result.rows[0]);
+
+      // redirect to home page
+      // response.send( result.rows );
+      let pokeAll = {pokemon : result.rows[0]}
+      res.render('Pokemon',pokeAll);
+    }
+  });
+})
+
+
+app.post('/pokemons', (req, res) => {
   let params = req.body;
+  console.log(params);
 
-  const queryString = 'INSERT INTO pokemon(name, height) VALUES($1, $2)'
-  const values = [params.name, params.height];
+  const queryString = 'INSERT INTO pokemon(name, height, weight) VALUES($1, $2, $3)'
+  const values = [params.name, params.height, params.weight];
 
-  pool.query(queryString, values, (err, res) => {
+  pool.query(queryString, values, (err, result) => {
     if (err) {
       console.log('query error:', err.stack);
     } else {
-      console.log('query result:', res);
+      console.log('query result:', result);
 
       // redirect to home page
-      response.redirect('/');
+      res.redirect('/');
     }
   });
 });
+
+
+app.get('/pokemon/:id/edit', (req, res) => {
+  let id = req.params.id;
+
+  const queryString = 'SELECT * from pokemon WHERE id = ' + id;
+
+  pool.query(queryString, (err, result) => {
+    if (err) {
+      console.error('query error:', err.stack);
+    } else {
+      // console.log('query result:', result.rows[0]);
+
+      // redirect to home page
+      // response.send( result.rows );
+      let pokeAll = {pokemon : result.rows[0]}
+      res.render('Edit',pokeAll);
+    }
+  });
+})
+
+
+app.put('/pokemon/edit/:id', (req, res) => {
+  console.log('params: ' + req.params.id);
+  console.log(req.body);
+  const queryString = 'UPDATE pokemon SET num = $1, name = $2, img = $3, height = $4, weight = $5 WHERE id = $6';
+  const values = [req.body.num, req.body.name, req.body.img, req.body.height, req.body.weight, req.params.id];
+
+  pool.query(queryString, values, (err, result) => {
+    if (err) {
+      console.error('query error:', err.stack);
+    } else {
+      console.log('query result:', result.rows[0]);
+
+
+
+
+
+      const queryString2 = 'SELECT * from pokemon ORDER BY id ASC'
+
+
+      pool.query(queryString2, (err, result) => {
+        if (err) {
+          console.error('query error:', err.stack);
+        } else {
+          console.log('query result:', result);
+    
+          // redirect to home page
+          let pokeAll = {pokemon : result.rows}
+          res.render('Home',pokeAll);
+        }
+      });
+    
+    }
+  });
+})
+
+
+
+
+
+
+app.delete('/pokemon/delete/:id', (req, res) => {
+  console.log('params: ' + req.params.id);
+  const queryString = 'DELETE FROM pokemon WHERE id = $1 RETURNING *';
+  const values = [parseInt(req.params.id)];
+
+  pool.query(queryString, values, (err, result) => {
+    if (err) {
+      console.error('query error:', err.stack);
+    } else {
+      // console.log('query result:', result.rows[0]);
+
+
+
+
+
+      const queryString2 = 'SELECT * from pokemon ORDER BY id ASC'
+
+
+      pool.query(queryString2, (err, result) => {
+        if (err) {
+          console.error('query error:', err.stack);
+        } else {
+          // console.log('query result:', result);
+    
+          // redirect to home page
+          let pokeAll = {pokemon : result.rows}
+          res.render('Home',pokeAll);
+        }
+      });
+    
+    }
+  });
+})
 
 
 /**
