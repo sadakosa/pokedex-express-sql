@@ -32,9 +32,10 @@ app.use(methodOverride('_method'));
 
 // Set react-views to be the default view engine
 const reactEngine = require('express-react-views').createEngine();
+app.engine('jsx', reactEngine);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jsx');
-app.engine('jsx', reactEngine);
+
 
 /**
  * ===================================
@@ -66,7 +67,7 @@ app.get('/', (req, res) => {
 
 });
 
-app.get('/new', (req, res) => {
+app.get('/pokemon/new', (req, res) => {
   // respond with HTML page with form to create new pokemon
   res.render('new');
 });
@@ -158,7 +159,7 @@ app.put('/pokemon/edit/:id', (req, res) => {
     
           // redirect to home page
           let pokeAll = {pokemon : result.rows}
-          res.render('Home',pokeAll);
+          res.redirect('/pokemon/' + req.params.id);
         }
       });
     
